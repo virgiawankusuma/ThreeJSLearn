@@ -1,13 +1,14 @@
-/* eslint-disable no-undef */
-/* eslint-disable no-restricted-globals */
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import '../styles/main.css';
+
+console.log(OrbitControls);
 
 const canvas = document.querySelector('.result');
 const scene = new THREE.Scene();
 
 // material
-const geometry = new THREE.BoxGeometry(1, 1, 2);
+const geometry = new THREE.BoxGeometry(1, 1, 1);
 const material = new THREE.MeshBasicMaterial({
   color: '#FFA500',
 });
@@ -33,7 +34,7 @@ const camera = new THREE.OrthographicCamera(
   1,
   -1,
   0.1,
-  100,
+  1000,
 );
 
 camera.position.z = 3;
@@ -42,6 +43,11 @@ camera.position.y = 2;
 camera.lookAt(cube.position);
 scene.add(camera);
 
+// Control
+const control = new OrbitControls(camera, canvas);
+control.enableDamping = true;
+
+// Renderer
 const renderer = new THREE.WebGLRenderer({
   canvas,
 });
@@ -59,8 +65,10 @@ const loop = () => {
   renderer.render(scene, camera);
 
   cube.rotation.x = elapsedTime;
+  // cube.rotation.y = Math.cos(elapsedTime);
+  // cube.rotation.x = Math.sin(elapsedTime);
+  control.update();
 
-  // cube.rotation.y += 0.01;
   window.requestAnimationFrame(loop);
 };
 

@@ -13,6 +13,9 @@
     },
     "rules": {
         "no-unused-vars": 0,
-        "linebreak-style": ["error", "windows"]
+        "linebreak-style": ["error", "windows"],
+        "no-console": 0,
+        "no-undef": 0,
+        "no-restricted-globals": 0
     }
 }
