@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import '../styles/main.css';
+import * as dat from 'dat.gui';
 
-console.log(OrbitControls);
+const gui = new dat.GUI();
 
 const canvas = document.querySelector('.result');
 const scene = new THREE.Scene();
@@ -15,6 +16,10 @@ const material = new THREE.MeshBasicMaterial({
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
+gui.add(cube.position, 'x').min(-3).max(3).step(0.01);
+gui.add(cube.position, 'y').min(-3).max(3).step(0.01);
+gui.add(cube.position, 'z').min(-3).max(3).step(0.01);
+
 const sizes = {
   width: innerWidth,
   height: innerHeight,
@@ -22,20 +27,20 @@ const sizes = {
 const aspectRatio = sizes.width / sizes.height;
 
 // camera
-// const camera = new THREE.PerspectiveCamera(
-//   75,
-//   sizes.width / sizes.height,
-//   0.1,
-//   100
-// );
-const camera = new THREE.OrthographicCamera(
-  -1 * aspectRatio,
-  1 * aspectRatio,
-  1,
-  -1,
+const camera = new THREE.PerspectiveCamera(
+  75,
+  sizes.width / sizes.height,
   0.1,
-  1000,
+  100
 );
+// const camera = new THREE.OrthographicCamera(
+//   -1 * aspectRatio,
+//   1 * aspectRatio,
+//   1,
+//   -1,
+//   0.1,
+//   1000,
+// );
 
 camera.position.z = 3;
 camera.position.x = 2;
