@@ -1,78 +1,128 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import '../styles/main.css';
-import * as dat from 'dat.gui';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 
-const gui = new dat.GUI();
-
+// Canvas
 const canvas = document.querySelector('.result');
+// Scene
 const scene = new THREE.Scene();
+// scene.background = new THREE.Color(0xdddddd);
 
-// material
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({
-  color: '#FFA500',
+// Models
+const gltfLoader = new GLTFLoader();
+const dracoLoader = new DRACOLoader();
+
+dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+gltfLoader.setDRACOLoader(dracoLoader);
+
+let mixer = null;
+let product = null;
+gltfLoader.load('/models/ishana.glb', (glb) => {
+  product = glb;
+  mixer = new THREE.AnimationMixer(product.scene);
+  const clips = glb.animations;
+  clips.forEach((clip) => {
+    const action = mixer.clipAction(clip);
+    action.play();
+  });
+  scene.add(product.scene);
 });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
 
-gui.add(cube.position, 'x').min(-3).max(3).step(0.01);
-gui.add(cube.position, 'y').min(-3).max(3).step(0.01);
-gui.add(cube.position, 'z').min(-3).max(3).step(0.01);
+// Lights
+const ambientLight = new THREE.HemisphereLight(0xdddddd, 0x111111, 4);
+ambientLight.position.set(0.5, 1, 0.25);
+scene.add(ambientLight);
 
+const directionalLight = new THREE.DirectionalLight(0xffffff);
+directionalLight.castShadow = true;
+directionalLight.position.set(1, 1, 1).normalize();
+scene.add(directionalLight);
+
+// Sizes
 const sizes = {
-  width: innerWidth,
-  height: innerHeight,
+  width: 500,
+  height: 254,
 };
-const aspectRatio = sizes.width / sizes.height;
 
-// camera
+// Camera
 const camera = new THREE.PerspectiveCamera(
-  75,
+  10,
   sizes.width / sizes.height,
   0.1,
   100,
 );
-// const camera = new THREE.OrthographicCamera(
-//   -1 * aspectRatio,
-//   1 * aspectRatio,
-//   1,
-//   -1,
-//   0.1,
-//   1000,
-// );
 
-camera.position.z = 3;
-camera.position.x = 2;
-camera.position.y = 2;
-camera.lookAt(cube.position);
+camera.position.set(0, 2, 10);
 scene.add(camera);
 
 // Control
 const control = new OrbitControls(camera, canvas);
 control.enableDamping = true;
+control.target.set(0, 0.3, 0);
+control.autoRotate = true;
+control.enableRotate = true;
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({
   canvas,
+  alpha: true,
+  antialias: true,
+});
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setSize(sizes.width, sizes.height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Resize
+window.addEventListener('resize', () => {
+  // Update sizes
+  sizes.width = window.innerWidth;
+  sizes.height = window.innerHeight;
+
+  // Update camera
+  camera.aspect = sizes.width / sizes.height;
+  camera.updateProjectionMatrix();
+
+  // Update renderer
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
-// resize
-renderer.setSize(sizes.width, sizes.height);
+// Full Screen
+window.addEventListener('dblclick', () => {
+  const fullscreenElement = document.fullscreenElement || document.webkitRequestFullscreen;
 
-// CLock
+  if (!fullscreenElement) {
+    if (canvas.requestFullscreen) {
+      canvas.requestFullscreen();
+    } else if (canvas.webkitRequestFullscreen) {
+      canvas.webkitRequestFullscreen();
+    }
+  } else if (document.exitFullscreen) {
+    // eslint-disable-next-line no-unused-expressions
+    document.exitFullscreen;
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  }
+});
+
+// animate
 const clock = new THREE.Clock();
-// gsap.to(cube.position, {duration:2, y:2, stagger:0.2, ease:'bounce'})
+let previousTime = 0;
 
 const loop = () => {
   const elapsedTime = clock.getElapsedTime();
-  // render
-  renderer.render(scene, camera);
+  const deltaTime = elapsedTime - previousTime;
+  previousTime = elapsedTime;
 
-  cube.rotation.x = elapsedTime;
-  // cube.rotation.y = Math.cos(elapsedTime);
-  // cube.rotation.x = Math.sin(elapsedTime);
+  if (mixer) {
+    mixer.update(deltaTime);
+  }
+
   control.update();
+  renderer.render(scene, camera);
 
   window.requestAnimationFrame(loop);
 };
