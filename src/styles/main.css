@@ -2,8 +2,3 @@ body {
   margin: 0;
   overflow: hidden;
 }
-
-.result {
-  background-color: #ddd;
-  cursor: grab;
-}

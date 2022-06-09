@@ -8,18 +8,22 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 const canvas = document.querySelector('.result');
 // Scene
 const scene = new THREE.Scene();
-// scene.background = new THREE.Color(0xdddddd);
+scene.background = new THREE.Color(0xdddddd);
 
 // Models
 const gltfLoader = new GLTFLoader();
 const dracoLoader = new DRACOLoader();
+
+const trigger = (product) => {
+  console.log(product);
+};
 
 dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 gltfLoader.setDRACOLoader(dracoLoader);
 
 let mixer = null;
 let product = null;
-gltfLoader.load('/models/ishana.glb', (glb) => {
+gltfLoader.load(`/models/${trigger}.glb`, (glb) => {
   product = glb;
   mixer = new THREE.AnimationMixer(product.scene);
   const clips = glb.animations;
@@ -42,8 +46,8 @@ scene.add(directionalLight);
 
 // Sizes
 const sizes = {
-  width: 500,
-  height: 254,
+  width: innerWidth,
+  height: innerHeight,
 };
 
 // Camera
